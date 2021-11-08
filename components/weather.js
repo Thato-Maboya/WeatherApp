@@ -1,6 +1,6 @@
 //import liraries
 import React, { Component, useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TextInput } from 'react-native';
 import Loading from './loading';
 import { Ionicons, Feather, } from '@expo/vector-icons';
 
@@ -8,8 +8,9 @@ import { Ionicons, Feather, } from '@expo/vector-icons';
 const Weather = () => {
     const [loading, setLoading] = useState(true);
     const [currentWeather, setCurrentWeather] = useState();
+    const [weatherGroup, setWeatherGroup] = useState();
     const api_key = '24f5bd578e231733bf88bcfaefa2816e'
-    const city_name = 'cape town'
+    const [city_name = 'cape town', setCity_name] = useState();
 
     const fetchData = () => {
         fetch('https://api.openweathermap.org/data/2.5/weather?q=' + city_name + '&appid=' + api_key)
@@ -19,11 +20,53 @@ const Weather = () => {
                 setCurrentWeather(data)
                 setNumber1(data.main.temp)
                 setUnixTime(data.dt)
+                console.log(data.weather[0].main)
+                setWeatherGroup(data.weather[0].main)
+                const group = data.weather[0].main
+                if(group == "Clouds") {
+                    setWheatherIcon('cloud')
+                } else if(group == "Sunny") {
+                    setWheatherIcon('md-partly-sunny-sharp')
+                } else {
+                    setWheatherIcon('rainy')
+                }
+                console.log(group)
             })
             .catch((error) => {
                 console.log(error);
             })
             .finally(() => setLoading(false))
+    }
+
+    const handlePress = () => {
+        if (!city_name) {
+           alert('Please enter your city name.');
+        }
+        fetch('https://api.openweathermap.org/data/2.5/weather?q=' + city_name + '&appid=' + api_key)
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                setCurrentWeather(data)
+                setNumber1(data.main.temp)
+                setUnixTime(data.dt)
+                console.log(data.weather[0].main)
+                setWeatherGroup(data.weather[0].main)
+                const group = data.weather[0].main
+                if(group == "Clouds") {
+                    setWheatherIcon('cloud')
+                } else if(group == "Sunny") {
+                    setWheatherIcon('md-partly-sunny-sharp')
+                } else {
+                    setWheatherIcon('rainy')
+                }
+                console.log(group)
+                setCity_name('')
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+
+            
     }
 
     useEffect(() => {
@@ -39,6 +82,10 @@ const Weather = () => {
     const [unixTime, setUnixTime] = useState();
     const date = new Date(unixTime*1000);
     const today = date.toLocaleDateString("en-US");
+  
+    const [wheatherIcon, setWheatherIcon] = useState();
+
+    
 
     // Function to add numbers and update total in state
     function calculateTotal() {
@@ -54,6 +101,15 @@ const Weather = () => {
             {
                 loading ? <Loading></Loading> :
                     <div>
+                        <View style={styles.InlineWeather}>
+                            <TextInput
+                                style={styles.SearchInput}
+                                placeholder= 'Search your city name'
+                                autoCapitalize="none"
+                                onChangeText={(city_name) => setCity_name(city_name)}
+                            />
+                            <Ionicons style={styles.SearchIcon} name="search-sharp" size={24} color="white" onPress={handlePress} />
+                        </View>
                         <View style={{ alignItems: 'center', alignContent: 'center' }}>
                             <Text>Today's Weather</Text>
                             <View style={{flexDirection: 'row'}}>
@@ -63,7 +119,7 @@ const Weather = () => {
                             <Text style={{ color: 'white'}}>{today}</Text>
                         </View>
                         <View style={styles.Weather}>
-                            <Ionicons name="md-partly-sunny-sharp" size={80} color="#FCFAA1" />
+                            <Ionicons name={wheatherIcon} size={80} color="#FCFAA1" />
                             <Text>{roundedDegreeCelcius}°C</Text>
                             <Text>Weather condition - {currentWeather.weather[0].description}</Text>
                             <Text>Weather Group - {currentWeather.weather[0].main}</Text>
@@ -122,6 +178,14 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'space-between',
      },
+     SearchInput: {
+         backgroundColor: 'white',
+         borderRadius: 2,
+         width: '90%',
+     },
+     SearchIcon: {
+         marginLeft: 0
+     }
 });
 
 //make this component available to the app
